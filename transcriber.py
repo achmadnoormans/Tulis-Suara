@@ -6,18 +6,17 @@ load_dotenv()
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-FORMAT_PROMPT = """Tolong perbaiki format transkrip berikut ini. 
+FORMAT_PROMPT = """Tolong perbaiki format transkrip berikut ini agar sangat rapi dan enak dibaca. 
 
-PENTING UNTUK FORMATTING:
-1. PERTAHANKAN rentang waktu (timestamp) di awal setiap baris/paragraf! (contoh: [00:00 - 00:05] Halo semua...).
-2. Boleh menggabungkan beberapa baris yang berdekatan menjadi satu paragraf yang rapi (misalnya gabungkan durasi [00:00 - 00:02] dan [00:02 - 00:05] menjadi [00:00 - 00:05] Satu kalimat utuh).
-3. Jangan hilangkan informasi durasi waktunya.
-4. Gunakan tanda baca yang baik (koma, titik) agar enak dibaca.
-5. Berikan emoji yang sesuai dengan konteks kalimat jika memungkinkan.
-6. Buat dalam bahasa Indonesia yang natural.
-7. HANYA KELUARKAN HASIL TRANSKRIPNYA SAJA (jangan tambahkan kata pengantar seperti 'Ini dia transkripnya').
+ATURAN FORMATTING (SANGAT PENTING):
+1. GABUNGKAN beberapa kalimat menjadi SATU PARAGRAF utuh (idealnya 2-3 kalimat per paragraf). Jangan buat baris baru untuk setiap kalimat pendek!
+2. Di awal setiap paragraf, tuliskan rentang waktu (timestamp) gabungannya dengan format **TEBAL**, contoh: **[00:00 - 00:15]** Teks paragraf disini...
+3. WAJIB BERIKAN JARAK 1 BARIS KOSONG (ENTER) ANTAR PARAGRAF agar tidak terlihat menumpuk dan mudah dibaca.
+4. Gunakan tanda baca yang baik (koma, titik, huruf kapital).
+5. Berikan emoji yang relevan di akhir atau di dalam kalimat.
+6. HANYA KELUARKAN HASIL TRANSKRIPNYA SAJA (jangan tambahkan kata pengantar apapun).
 
-Transkrip mentah:
+Transkrip mentah (dengan timestamp tiap kalimat):
 {raw_text}
 """
 
