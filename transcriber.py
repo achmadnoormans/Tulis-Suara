@@ -47,7 +47,7 @@ def _process_file(file_path: str) -> str:
                     "content": FORMAT_PROMPT.format(raw_text=raw_text)
                 }
             ],
-            model="llama-3.1-8b-instant",
+            model="llama3-8b-8192",
         )
         
         final_text = chat_completion.choices[0].message.content
