@@ -104,7 +104,10 @@ async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         except Exception as e:
             logger.error(f"Error handle_link: {e}")
-            await status_msg.edit_text(f"❌ Terjadi kesalahan: {str(e)[:200]}")
+            try:
+                await status_msg.edit_text(f"❌ Terjadi kesalahan: {str(e)[:200]}")
+            except:
+                await update.message.reply_text(f"❌ Terjadi kesalahan: {str(e)[:200]}")
 
 
 async def handle_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -131,7 +134,8 @@ async def handle_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             # Transkripsi
             await status_msg.edit_text("🤖 AI sedang memproses transkripsi...")
-            transcript = transcribe_video_file(video_path)
+            import asyncio
+            transcript = await asyncio.to_thread(transcribe_video_file, video_path)
 
             # Kirim hasil
             await status_msg.delete()
@@ -139,7 +143,10 @@ async def handle_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         except Exception as e:
             logger.error(f"Error handle_video: {e}")
-            await status_msg.edit_text(f"❌ Terjadi kesalahan: {str(e)[:200]}")
+            try:
+                await status_msg.edit_text(f"❌ Terjadi kesalahan: {str(e)[:200]}")
+            except:
+                await update.message.reply_text(f"❌ Terjadi kesalahan: {str(e)[:200]}")
 
 
 async def handle_audio(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -181,17 +188,26 @@ async def send_transcript(update: Update, transcript: str, source: str = ""):
 
     # Telegram max 4096 karakter per pesan
     MAX_LEN = 4096
-    if len(full_text) <= MAX_LEN:
-        await update.message.reply_text(full_text, parse_mode="Markdown")
-    else:
-        # Kirim dalam beberapa bagian
-        await update.message.reply_text(header + "_(Teks panjang, dikirim dalam beberapa bagian)_", parse_mode="Markdown")
-        chunks = [transcript[i:i+4000] for i in range(0, len(transcript), 4000)]
-        for i, chunk in enumerate(chunks, 1):
-            await update.message.reply_text(
-                f"📄 *Bagian {i}/{len(chunks)}:*\n\n{chunk}",
-                parse_mode="Markdown"
-            )
+    try:
+        if len(full_text) <= MAX_LEN:
+            await update.message.reply_text(full_text, parse_mode="Markdown")
+        else:
+            await update.message.reply_text(header + "_(Teks panjang, dikirim dalam beberapa bagian)_", parse_mode="Markdown")
+            chunks = [transcript[i:i+4000] for i in range(0, len(transcript), 4000)]
+            for i, chunk in enumerate(chunks, 1):
+                await update.message.reply_text(
+                    f"📄 *Bagian {i}/{len(chunks)}:*\n\n{chunk}",
+                    parse_mode="Markdown"
+                )
+    except Exception:
+        # Fallback without markdown formatting if it fails due to unescaped characters
+        if len(full_text) <= MAX_LEN:
+            await update.message.reply_text(full_text)
+        else:
+            await update.message.reply_text(header + "(Teks panjang, dikirim dalam beberapa bagian)")
+            chunks = [transcript[i:i+4000] for i in range(0, len(transcript), 4000)]
+            for i, chunk in enumerate(chunks, 1):
+                await update.message.reply_text(f"Bagian {i}/{len(chunks)}:\n\n{chunk}")
 
 
 # ─────────────────────────────────────────────
