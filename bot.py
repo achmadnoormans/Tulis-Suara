@@ -215,19 +215,33 @@ async def send_transcript(update: Update, transcript: str, source: str = ""):
 # ─────────────────────────────────────────────
 
 
+import asyncio
 import threading
+import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
+
+bot_start_time = time.time()
 
 class DummyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
+        uptime_seconds = int(time.time() - bot_start_time)
+        hours, remainder = divmod(uptime_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        uptime_str = f"{hours}h {minutes}m {seconds}s"
+        
         self.send_response(200)
-        self.send_header("Content-type", "text/plain")
+        self.send_header("Content-type", "text/plain; charset=utf-8")
         self.end_headers()
-        self.wfile.write(b"Bot is running!")
+        self.wfile.write(f"OK - Tulis Suara Bot is running!\nUptime: {uptime_str}\nStatus: Healthy\n".encode("utf-8"))
+
+    def log_message(self, format, *args):
+        # Keep logs clean from excessive pinger spam
+        pass
 
 def run_web():
     port = int(os.getenv("PORT", 8080))
     server = HTTPServer(("0.0.0.0", port), DummyHandler)
+    logger.info(f"Keep-alive web server listening on port {port}")
     server.serve_forever()
 
 threading.Thread(target=run_web, daemon=True).start()
@@ -235,6 +249,13 @@ threading.Thread(target=run_web, daemon=True).start()
 def main():
     """Jalankan bot."""
     print("🤖 Bot transkripsi sedang berjalan...")
+
+    # Pastikan event loop terdaftar di MainThread (fix untuk Python 3.10+ di Linux / Render)
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
 
     app = Application.builder().token(TELEGRAM_TOKEN).build()
 
@@ -257,3 +278,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
